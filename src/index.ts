@@ -1,20 +1,10 @@
+#!/usr/bin/env node
+
 import OpenAI from 'openai';
-import dotenv from 'dotenv';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
-
-dotenv.config();
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-if (!process.env.OPENAI_API_KEY) {
-  console.error(chalk.red('Error: OPENAI_API_KEY not found in environment variables.'));
-  console.error('Please create a .env file with your OpenAI API key.');
-  process.exit(1);
-}
+import { getApiKey } from './config';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,6 +12,9 @@ interface Message {
 }
 
 async function main() {
+  const apiKey = await getApiKey();
+  const client = new OpenAI({ apiKey });
+
   console.log(chalk.green('Welcome to ChatGPT CLI!'));
   console.log('Type "exit" or "quit" to end the conversation.');
   console.log('Type "clear" to start a new conversation.');
