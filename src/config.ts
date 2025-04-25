@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import chalk from 'chalk';
 import inquirer from 'inquirer';
 
 const CONFIG_DIR = path.join(os.homedir(), '.aincli');
@@ -13,33 +12,35 @@ interface Config {
 
 function ensureConfigDir(): void {
   if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { mode: 0o700 }); // Only user can read/write/execute
+    fs.mkdirSync(CONFIG_DIR, { mode: 0o700 });
   }
 }
 
 function ensureConfigFile(): void {
   if (!fs.existsSync(CONFIG_FILE)) {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify({ apiKey: '' }, null, 2));
-    fs.chmodSync(CONFIG_FILE, 0o600); // Only user can read/write
   }
 }
 
 function readConfig(): Config {
   try {
-    return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8')) as Config;
+    const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const config = JSON.parse(data);
+    
+    if (typeof config !== 'object' || config === null) {
+      throw new Error('Invalid config format');
+    }
+    
+    if (typeof config.apiKey !== 'string') {
+      throw new Error('Invalid API key format');
+    }
+    
+    return config;
   } catch (error) {
-    console.error(chalk.red('Error reading configuration file:'), error);
-    process.exit(1);
-  }
-}
-
-function writeConfig(config: Config): void {
-  try {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-    fs.chmodSync(CONFIG_FILE, 0o600);
-  } catch (error) {
-    console.error(chalk.red('Error writing configuration file:'), error);
-    process.exit(1);
+    if (error instanceof SyntaxError) {
+      throw new Error('Invalid JSON in configuration file.');
+    }
+    throw error;
   }
 }
 
@@ -63,10 +64,9 @@ export async function getApiKey(): Promise<string> {
       },
     ]);
 
-    writeConfig({ apiKey });
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify({ apiKey }, null, 2));
     return apiKey;
   } catch (error) {
-    console.error(chalk.red('Error managing API key:'), error);
-    process.exit(1);
+    throw error;
   }
 } 
