@@ -1,0 +1,33 @@
+# Source files
+src/
+*.ts
+!*.d.ts
+
+# Environment and config
+.env
+.env.*
+.gitignore
+.npmignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+test/
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Documentation
+*.md
+!README.md
+
+# Misc
+.git/
+.github/
+.gitlab/
+.npm/
+node_modules/ 
